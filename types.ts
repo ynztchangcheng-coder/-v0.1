@@ -5,38 +5,49 @@ export enum Difficulty {
   Hard = 'Hard'
 }
 
-// 定义标准的知识点分类
-export const KNOWLEDGE_POINTS = [
-  '集合与常用逻辑',
-  '函数概念与性质',
-  '指数与对数函数',
-  '三角函数',
-  '解三角形',
-  '数列',
-  '不等式',
-  '导数及其应用',
-  '复数',
-  '平面向量',
-  '立体几何',
-  '解析几何',
-  '概率与统计',
-  '综合性题型',
-  '未分类'
-] as const;
+export enum QuestionType {
+  SingleChoice = '单项选择题',
+  MultipleChoice = '多项选择题',
+  FillInBlank = '填空题',
+  Solution = '解答题'
+}
 
-export type KnowledgePoint = typeof KNOWLEDGE_POINTS[number];
+export interface SubPoint {
+  id: string;
+  name: string;
+}
+
+export interface KnowledgePointNode {
+  id: string;
+  name: string;
+  children: SubPoint[];
+}
+
+export type KnowledgePoint = string; // Legacy support for basic strings
+
+export interface User {
+  id: string;
+  username: string;
+  role: 'user' | 'admin';
+  avatar?: string;
+  createdAt: number;
+}
 
 export interface Question {
   id: string;
-  content: string; // 包含 LaTeX 的纯文本描述
-  latex: string;   // 核心公式
+  userId: string; 
+  authorName: string;
+  content: string; 
+  latex: string;   
   tags: string[];
-  category: KnowledgePoint;
+  category: string;
+  subCategory?: string;
+  type: QuestionType;
   difficulty: Difficulty;
   createdAt: number;
 }
 
-export type AppView = 'dashboard' | 'upload' | 'builder' | 'settings';
+export type AppView = 'dashboard' | 'upload' | 'builder' | 'userCenter' | 'auth' | 'adminPanel';
 
 export interface OCRResult {
   text: string;

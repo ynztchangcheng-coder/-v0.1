@@ -19,18 +19,15 @@ If the content contains multiple numbered questions, return them as separate obj
 Return ONLY a JSON array of these objects.
 `;
 
-const RETRY_INSTRUCTION = "The previous recognition attempt resulted in LaTeX rendering errors. Please pay extra attention to balanced brackets, correct command syntax, and proper delimiters. Ensure the output is valid LaTeX.";
-
 export const performOCR = async (
   input: { base64?: string; mimeType?: string; textContent?: string }, 
   isRetry: boolean = false
 ): Promise<OCRResult[]> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  // Always use the latest API Key from the environment
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const parts: any[] = [];
-    
-    // 如果提供了图像/PDF 数据
     if (input.base64 && input.mimeType) {
       parts.push({
         inlineData: {
@@ -39,18 +36,16 @@ export const performOCR = async (
         },
       });
     }
-    
-    // 如果提供了文本内容（如从 Word 提取的内容）
     if (input.textContent) {
       parts.push({ text: `Content extracted from document:\n${input.textContent}` });
     }
 
-    parts.push({ text: isRetry ? `${OCR_PROMPT}\n\n${RETRY_INSTRUCTION}` : OCR_PROMPT });
-
+    // Use generateContent with systemInstruction and correct contents structure
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
       contents: { parts },
       config: {
+        systemInstruction: OCR_PROMPT,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.ARRAY,
@@ -59,11 +54,11 @@ export const performOCR = async (
             properties: {
               text: { 
                 type: Type.STRING,
-                description: "The full question text with all math properly delimited with $ or \\."
+                description: "Full question text with all math properly delimited."
               },
               latex: { 
                 type: Type.STRING,
-                description: "The core formula extracted separately."
+                description: "Core formula extracted separately."
               }
             },
             required: ["text", "latex"],
@@ -72,9 +67,9 @@ export const performOCR = async (
       }
     });
 
+    // Access text property directly (it's a property, not a method)
     const resultStr = response.text;
     if (!resultStr) return [];
-
     return JSON.parse(resultStr.trim()) as OCRResult[];
   } catch (e) {
     console.error("OCR Service Error:", e);
