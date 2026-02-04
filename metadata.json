@@ -1,0 +1,7 @@
+{
+  "name": "LaTeX Question Bank Manager",
+  "description": "A professional tool for batch OCR extraction of LaTeX formulas from images, PDFs, and Word documents, question bank management, and exam assembly with .tex export capabilities.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
